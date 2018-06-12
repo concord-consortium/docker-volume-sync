@@ -40,5 +40,5 @@ COPY entrypoint.sh /entrypoint.sh
 
 VOLUME /unison
 
-EXPOSE 5000 5001
+EXPOSE 5001
 ENTRYPOINT ["/sbin/tini", "--", "/entrypoint.sh"]

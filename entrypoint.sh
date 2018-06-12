@@ -27,23 +27,17 @@ chown -R $UNISON_USER:$UNISON_GROUP $UNISON_DIR
 # Start process on path which we want to sync
 cd $UNISON_DIR
 
-if [ -n "$UNISON_HOST_DIR" ]; then
-    if [ ! -d "$UNISON_HOST_DIR" ]; then
-        echo "Creating $UNISON_HOST_DIR directory for host sync..."
-        mkdir -p $UNISON_HOST_DIR >> /dev/null 2>&1
-    fi
-
-    su-exec $UNISON_USER unison $UNISON_HOST_DIR $UNISON_DIR -prefer $UNISON_HOST_DIR -auto -batch
-
-    echo "Initial sync complete, opening port 5001 to let the world know"
-
-    ncat -k -l 5001 --sh-exec 'echo "unsion is running"' &
-
-    # Run unison syncing UNISON_HOST_DIR and UNISON_DIR
-    # run as UNISON_USER and pass signals through
-    exec su-exec $UNISON_USER unison $UNISON_HOST_DIR $UNISON_DIR -repeat watch -prefer $UNISON_HOST_DIR -auto -batch
-else
-    # Run unison server so a host based unison client can connect to it
-    # run as UNISON_USER and pass signals through
-    exec su-exec $UNISON_USER unison -socket 5000
+if [ ! -d "$UNISON_HOST_DIR" ]; then
+    echo "Creating $UNISON_HOST_DIR directory for host sync..."
+    mkdir -p $UNISON_HOST_DIR >> /dev/null 2>&1
 fi
+
+su-exec $UNISON_USER unison $UNISON_HOST_DIR $UNISON_DIR -prefer $UNISON_HOST_DIR -auto -batch
+
+echo "Initial sync complete, opening port 5001 to let the world know"
+
+ncat -k -l 5001 --sh-exec 'echo "unsion is running"' &
+
+# Run unison syncing UNISON_HOST_DIR and UNISON_DIR
+# run as UNISON_USER and pass signals through
+exec su-exec $UNISON_USER unison $UNISON_HOST_DIR $UNISON_DIR -repeat watch -prefer $UNISON_HOST_DIR -auto -batch

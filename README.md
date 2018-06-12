@@ -1,8 +1,9 @@
 # Docker-Volume-Sync
 A docker volume container using [Unison](http://www.cis.upenn.edu/~bcpierce/unison/) for fast two-way folder sync. Created as an alternative to [slow docker for mac volumes on OS X](https://forums.docker.com/t/file-access-in-mounted-volumes-extremely-slow-cpu-bound/8076).
 
-If the UNISON_HOST_DIR is used then this container does not require unison to be installed
-on your host machine.
+The approach taken by this container does not require unison to run on your host machine.
+It also can be used in a way that does not require any extra scripts be run on the host
+machine.
 
 The container opens port 5001 after doing an initial sync. Any containers using
 the synced volume can wait for this port to be open before using the volume.
@@ -11,15 +12,20 @@ There are several options for use for waiting like this: wait-for-it, wait-for, 
 If this waiting strategy is used then a simple `docker-compose up` can be used for your
 dev environment.
 
+If you don't want to modify the containers using the synced volume then you probably want
+to make a script that launches this container outside of the compose project with a
+docker command. Then you should wait for the first sync to complete before starting any
+containers using the synced volume.
+
 ## Usage
 
 ### Configuration
 This container has few envs that you can alter.
 
 `UNISON_DIR` - This is the directory which receives data from unison inside the container.
-This is also the directory which you can use in other containers with `volumes_from` directive.
+This is the directory you should use in other containers. Either with the `volumes_from` directive, or using a named volume.
 
-`UNISON_HOST_DIR` - If this variable is defined the container will sync this directory with `UNISON_DIR` instead of running a server. The intention is that this HOST_DIR is a mounted host volume. This makes it possible to get fullspeed disk access without installing unison on the host.  
+`UNISON_HOST_DIR` - This should be the mounted host volume. The container will sync this directory with `UNISON_DIR`.
 
 `UNISON_GID` - Group ID for the user running unison inside container.
 
@@ -31,16 +37,17 @@ This is also the directory which you can use in other containers with `volumes_f
 
 ## Testing
 
-There are no automated tests. But the docker-compose.yml, Dockerfile.reader, and
-generate_test_files.sh can be used to run a manual test.
+There are no automated tests. But the files in `demo` can be used to run a manual test.
 
-First run `generate_test_files.sh` this will generate 200 random files in a test_files
+First cd into `demo`
+
+Then run `generate_test_files.sh` this will generate 200 random files in a test_files
 directory.
 
-Then run `docker-compose up`. Docker compose will build two images and bring them up.
-You should see the main container (called unison in docker-compose) syncing all of the
-random files. And you should see the `reader` image waiting for the files to be sync'd
-before printing the contents of the zzz.txt file.
+Then run `docker-compose up`. Docker compose will build a image for a `unison` service
+and a image for a `reader` service.  After these images are built you should see the
+`unison` service syncing all of the random files. And you should see the `reader` image
+waiting for the files to be sync'd before printing the contents of the zzz.txt file.
 
 ## Credits
 This is based off of https://github.com/onnimonni/docker-unison
