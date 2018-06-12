@@ -1,5 +1,5 @@
 FROM alpine:edge
-MAINTAINER Onni Hakala <onni.hakala@geniem.com>
+MAINTAINER Scott Cytacki <scytacki@concord.org>
 
 ARG UNISON_VERSION=2.51.2
 
