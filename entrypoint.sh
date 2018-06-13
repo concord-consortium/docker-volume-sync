@@ -10,27 +10,34 @@ if [ ! -d "$UNISON_DIR" ]; then
     mkdir -p $UNISON_DIR >> /dev/null 2>&1
 fi
 
-# Create directory for unison meta
-if [ ! -d "$UNISON_DIR/.unison" ]; then
-    mkdir -p /unison >> /dev/null 2>&1
-    chown -R $UNISON_USER:$UNISON_GROUP /unison
+if [ ! -d "$UNISON_HOST_DIR" ]; then
+    echo "Creating $UNISON_HOST_DIR directory for host sync..."
+    mkdir -p $UNISON_HOST_DIR >> /dev/null 2>&1
 fi
 
-# Symlink .unison folder from user home directory to sync directory so that we only need 1 volume
-if [ ! -h "$UNISON_DIR/.unison" ]; then
-    ln -s /unison /home/$UNISON_USER/.unison >> /dev/null 2>&1
-fi
+# /unison directory is created as a volume by onnimonni/unison
+# make sure we can write to it
+chown -R $UNISON_USER:$UNISON_GROUP /unison
+
+# tell unison to use the /unison volume for its meta data,
+# Because unison is writing to this often, it is better
+# to be in a volume than on the root filesystem.
+# However this is an anonymous volume, so it will be deleted if the container is
+# removed.
+export UNISON=/unison
+
+# FIXME because the container might have been removed and the /unison folder cleared
+#   it would be good to check if it is empty and if so then we delete the contents of
+#   UNISON_DIR. This will force a full sync from UNISON_HOST_DIR
+
+# FIXME it would be better to put the unison.log in a volume too, or just not log it
+#    docker is logging this info anyhow
 
 # Change data owner
 chown -R $UNISON_USER:$UNISON_GROUP $UNISON_DIR
 
 # Start process on path which we want to sync
 cd $UNISON_DIR
-
-if [ ! -d "$UNISON_HOST_DIR" ]; then
-    echo "Creating $UNISON_HOST_DIR directory for host sync..."
-    mkdir -p $UNISON_HOST_DIR >> /dev/null 2>&1
-fi
 
 # Use a bash array () to store the cmd to be used twice below
 # Run as UNISON_USER
