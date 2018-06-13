@@ -7,12 +7,13 @@ machine.
 
 The container opens port 5001 after doing an initial sync. Any containers using
 the synced volume can wait for this port to be open before using the volume.
-There are several options for use for waiting like this: wait-for-it, wait-for, wait4ports
+There are several options for use for waiting like this: wait-for-it, wait-for,
+wait4ports.
 
-If this waiting strategy is used then a simple `docker-compose up` can be used for your
+With this waiting strategy a simple `docker-compose up` can be used for your
 dev environment.
 
-If you don't want to modify the containers using the synced volume then you probably want
+If you can't modify the containers using the synced volume, then you probably want
 to make a script that launches this container outside of the compose project with a
 docker command. Then you should wait for the first sync to complete before starting any
 containers using the synced volume.
@@ -34,6 +35,23 @@ This is the directory you should use in other containers. Either with the `volum
 `UNISON_USER` - User name for the sync user ( UID matters more )
 
 `UNISON_GROUP` - Group name for the sync user ( GID matters more )
+
+## Edge cases
+
+This container tries to emulate a simple docker bind mounted volume. As such it
+treats the UNISON_HOST_DIR as the main source of the files. If there is a conflict
+it will use the file in the UNISON_HOST_DIR.  If the container is not running and a file
+is removed from UNSION_DIR but not UNISON_HOST_DIR, then it will delete the file in
+UNISON_HOST_DIR when it starts up.
+
+The one bad edge case I can think of is if the container isn't running and you make
+changes in UNISON_DIR, when the container starts up you will loose those changes.
+However, this is roughly what happens with a bind mount. If you disconnect the bind mount,
+then do work in the unmounted directory, those changes will be lost. The difference is
+that when the bind mount is disconnected the unmounted directory will be empty so that
+is a good clue something is wrong.  In the case of this container the directory will
+still be populated. I have not run into this issue yet in practice. If you do, please
+file an issue, there might be a way to improve the behavior.
 
 ## Testing
 
