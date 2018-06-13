@@ -32,12 +32,18 @@ if [ ! -d "$UNISON_HOST_DIR" ]; then
     mkdir -p $UNISON_HOST_DIR >> /dev/null 2>&1
 fi
 
-su-exec $UNISON_USER unison $UNISON_HOST_DIR $UNISON_DIR -prefer $UNISON_HOST_DIR -auto -batch
+# Use a bash array () to store the cmd to be used twice below
+# Run as UNISON_USER
+# Run unison syncing UNISON_HOST_DIR and UNISON_DIR
+UNISON_CMD=(su-exec $UNISON_USER unison $UNISON_HOST_DIR $UNISON_DIR \
+  -prefer $UNISON_HOST_DIR -auto -batch -ignore 'Path .git')
+
+# do an initial sync so we can let other containers know we are ready to go
+"${UNISON_CMD[@]}" "$@"
 
 echo "Initial sync complete, opening port 5001 to let the world know"
-
 ncat -k -l 5001 --sh-exec 'echo "unsion is running"' &
 
-# Run unison syncing UNISON_HOST_DIR and UNISON_DIR
-# run as UNISON_USER and pass signals through
-exec su-exec $UNISON_USER unison $UNISON_HOST_DIR $UNISON_DIR -repeat watch -prefer $UNISON_HOST_DIR -auto -batch
+# replace this script with unison so it receives te signals
+# run the sync continously watching for changes
+exec "${UNISON_CMD[@]}" -repeat watch "$@"
