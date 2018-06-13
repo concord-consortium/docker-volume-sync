@@ -17,6 +17,7 @@ services:
       context: .
       dockerfile: Dockerfile.reader
     command: unison:5001 -s -t 30 -- cat /test_files/zzz.txt
+    depends_on: [ unison ]
     volumes:
       - unison:/test_files
 volumes:
