@@ -9,5 +9,8 @@ RUN apk add --update nmap-ncat && \
 # Overwrite the entrypoint included with docker-unison
 COPY entrypoint.sh /entrypoint.sh
 
+# Default host directory
+ENV UNISON_HOST_DIR="/host_data"
+
 EXPOSE 5001
 ENTRYPOINT ["/sbin/tini", "--", "/entrypoint.sh"]

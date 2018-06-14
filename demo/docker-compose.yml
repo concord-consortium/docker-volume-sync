@@ -1,24 +1,18 @@
 version: '3'
 services:
-  unison:
+  sync:
     build:
       context: ..
-    environment:
-      UNISON_DIR: /data
-      UNISON_HOST_DIR: /host_data
-    ports:
-      # this will use a randomly assigned port
-      - "5001"
     volumes:
-      - unison:/data
-      - ./test_files:/host_data
-  reader:
+      - sync-volume:/data
+      - .:/host_data
+  app:
     build:
       context: .
-      dockerfile: Dockerfile.reader
-    command: unison:5001 -s -t 30 -- cat /test_files/zzz.txt
-    depends_on: [ unison ]
+    entrypoint: ["/bin/bash", "/usr/local/bin/wait-for-it.sh", "sync:5001", "-s", "-t", "30", "--"]
+    command: ["cat", "/app/test_files/zzz.txt"]
+    depends_on: [ sync ]
     volumes:
-      - unison:/test_files
+      - sync-volume:/app
 volumes:
-  unison:
+  sync-volume:
