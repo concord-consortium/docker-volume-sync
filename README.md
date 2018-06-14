@@ -1,21 +1,19 @@
 # Docker-Volume-Sync
 A docker volume container using [Unison](http://www.cis.upenn.edu/~bcpierce/unison/) for fast two-way folder sync. Created as an alternative to [slow docker for mac volumes on OS X](https://forums.docker.com/t/file-access-in-mounted-volumes-extremely-slow-cpu-bound/8076).
 
-The approach taken by this container does not require unison to be running on your host machine. If setup correctly it also does not require any other scripts be run on the host machine.
+When the development environment is configured correctly with docker-volume-sync, a
+developer doesn't need to remember any special commands. They just run `docker-compose up` as they normally would.
 
 docker-volume-sync opens port 5001 after doing an initial sync. Any containers using
-the synced volume can wait for this port to be open before using the volume.
+the synced volume need to wait for this port to be open before using the volume.
 There are several options to use for waiting: wait-for-it, wait-for, and wait4ports.
-
-With this waiting strategy a simple `docker-compose up` can be used for your
-dev environment.
 
 ## Usage
 
 ### Compose file
 
 docker-volume-sync is designed to work with compose. Let's say you have a compose file
-like this. It is mounting the host directory `.` to `/app` in the container.
+like the one below. It is mounting the host directory `.` to `/app` in the container.
 The container simply prints the contents of a file and then exits.
 
 ```yaml
@@ -29,7 +27,7 @@ services:
       - .:/app
 ```
 
-To use docker-volume-sync you would change it look like this:
+To use docker-volume-sync you would change it to look like this:
 
 ```yaml
 version: '3'
@@ -51,10 +49,11 @@ volumes:
   sync-volume:
 ```
 
-You also need to change the app image to install the wait-for-it script. See below.
+You also need to change the app image to install the wait-for-it script. See the
+Waiting for Port section below.
 
-These changes to the compose file can be done using an overlay, so your original compose
-file can remain untouched. This overlay would look like this:
+These changes to the compose file can also be done using an overlay, so your original
+compose file can remain untouched. This overlay would look like this:
 
 ```yaml
 version: '3'
@@ -90,8 +89,8 @@ RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for
 CMD ["cat", "/app/test_files/zzz.txt"]
 ```
 
-wait-for-it requries bash, so bash is added, it then downloads the wait-for-it script,
-and makes it executable.
+wait-for-it requires bash, so bash is added, then the  wait-for-it script is downloaded,
+and made executable.
 
 ### Configuration
 
@@ -115,7 +114,7 @@ this directory with `UNISON_DIR`. The default is `/host_data`
 ### Without Waiting
 
 If you can't modify the containers using the synced volume to wait for the port,
-then you won't want to add the docker-volume-sync service to your app's docker compose
+then you shouldn't add the docker-volume-sync service to your app's docker compose
 file.  Instead you should run it separately. Then you should manually wait for the first
 sync to complete before starting any containers using the synced volume.
 
