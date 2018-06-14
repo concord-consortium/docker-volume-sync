@@ -1,28 +1,22 @@
 # Docker-Volume-Sync
 A docker volume container using [Unison](http://www.cis.upenn.edu/~bcpierce/unison/) for fast two-way folder sync. Created as an alternative to [slow docker for mac volumes on OS X](https://forums.docker.com/t/file-access-in-mounted-volumes-extremely-slow-cpu-bound/8076).
 
-The approach taken by this container does not require unison to run on your host machine.
-If setup correctly it does not require any extra scripts be run on the host machine.
+The approach taken by this container does not require unison to be running on your host machine. If setup correctly it also does not require any other scripts be run on the host machine.
 
-The container opens port 5001 after doing an initial sync. Any containers using
+docker-volume-sync opens port 5001 after doing an initial sync. Any containers using
 the synced volume can wait for this port to be open before using the volume.
 There are several options to use for waiting: wait-for-it, wait-for, and wait4ports.
 
 With this waiting strategy a simple `docker-compose up` can be used for your
 dev environment.
 
-If you can't modify the containers using the synced volume to wait for the port,
-then you won't want to add docker-volume-sync service to docker compose.  Instead you
-should run it directly with docker. Then you should wait for the first sync to complete
-before starting any containers using the synced volume.
-
 ## Usage
 
 ### Compose file
 
 docker-volume-sync is designed to work with compose. Let's say you have a compose file
-like this. It is mounting the `.` host directory to a `/app` folder. Then it is simply
-cat'ing a file.
+like this. It is mounting the host directory `.` to `/app` in the container.
+The container simply prints the contents of a file and then exits.
 
 ```yaml
 version: '3'
@@ -117,6 +111,13 @@ this directory with `UNISON_DIR`. The default is `/host_data`
 `UNISON_USER` - User name for the sync user ( UID matters more )
 
 `UNISON_GROUP` - Group name for the sync user ( GID matters more )
+
+### Without Waiting
+
+If you can't modify the containers using the synced volume to wait for the port,
+then you won't want to add the docker-volume-sync service to your app's docker compose
+file.  Instead you should run it separately. Then you should manually wait for the first
+sync to complete before starting any containers using the synced volume.
 
 ## Edge cases
 
