@@ -3,6 +3,7 @@ services:
   sync:
     build:
       context: ..
+    command: ["-ignore", "Name *.log"]
     volumes:
       - sync-volume:/data
       - .:/host_data

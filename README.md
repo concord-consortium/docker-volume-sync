@@ -75,13 +75,37 @@ FROM alpine:edge
 RUN apk --no-cache add bash ca-certificates
 
 WORKDIR /usr/local/bin
-RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/db049716e42767d39961e95dd9696103dca813f1/wait-for-it.sh && \
+RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/ed77b63706ea721766a62ff22d3a251d8b4a6a30/wait-for-it.sh && \
     chmod +x wait-for-it.sh
 
 CMD ["cat", "/app/test_files/zzz.txt"]
 ```
 
 wait-for-it requires bash, so bash is added, then the  wait-for-it script is downloaded, and made executable.
+
+### Ignoring files
+
+The docker compose `command` can be used to pass additional options to Unison. A good usage for this
+is to ignore files.  For example if you want to ignore all log files you can use this:
+
+```yaml
+...
+services:
+  sync:
+    image: concordconsortium/docker-volume-sync
+    command: ["-ignore", "Name *.log"]
+    volumes:
+      - sync-volume:/data
+      - .:/host_data
+...
+```
+More info about the syntax for ignoring files is here:
+https://www.cis.upenn.edu/~bcpierce/unison/download/releases/stable/unison-manual.html#ignore
+
+If you are wanting to ignoring a folder on your host system, you might be able to optimize performance further by adding an additional
+volume inside of host_data. This technique is described here:
+https://stackoverflow.com/a/37898591
+We don't currently have a need for this kind of optimization, so it hasn't been tested.
 
 ### Configuration
 
@@ -118,6 +142,8 @@ First cd into `demo`
 Then run `generate_test_files.sh` this will generate 200 random files in a test_files directory.
 
 Then run `docker-compose up`. Docker compose will build a image for a `sync` service and a image for a `app` service.  After these images are built you should see the `sync` service syncing all of the random files. And you should see the `app` image waiting for the files to be sync'd before printing the contents of the zzz.txt file.
+
+This demo folder also includes an example of how to ignore a log file.
 
 ## Credits
 This is based off of https://github.com/onnimonni/docker-unison
