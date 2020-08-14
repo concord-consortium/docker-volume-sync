@@ -109,6 +109,33 @@ docker-volume-sync tries to emulate a simple [docker bind mounted volume](https:
 
 If docker-volume-sync has been removed and you make changes in UNISON_DIR, when docker-volume-sync starts up you will lose those changes. This is roughly what happens with a bind mount. If you unmount the bind mount, then add files to the unmounted directory, those changes will appear lost when the volume is mounted again. The difference is what the directory looks like when it is disconnected. With a bind mount the directory is empty, with docker-volume-sync the directory will continue to have the files in it. (assuming you just remove docker-volume-sync and don't remove the sync-volume). This has not been a problem in practice, if it causes problems for you, please file an issue, there might be a way to improve the behavior.
 
+## Errors
+
+Occasionally you might get an error like this:
+> Fatal error: Warning: the archives are locked.
+> If no other instance of unison is running, the locks should be removed.
+> The file /unison/lk6a655cdeaa391792d60e9febcea4f06a on host 82ad9bbcb013 should be deleted
+
+This error will prevent the sync container from starting. If the sync container can't start
+then it is difficult to get into it and delete the lock file. There are a couple of
+options:
+
+1. remove the sync container and its anonymous volumes: `docker-compose rm -v sync`  
+This command effectively removes the whole /unison folder so the problem should go away.
+When you run `docker-compose up` again the sync container will be recreated.
+This command does not remove the sync-volume, so it shouldn't take too long to resync.
+
+1. mount the volumes used by the sync container in a new container
+and delete the lock file:
+    1. run `docker-compose ps` and find the sync container name
+    1. run ` docker run --volumes-from [sync_container_name] -it --rm bash`
+       this uses a generic bash image.
+    1. now you should be able to remove the lock file from `/unison`
+
+It should be possible to detect this error in the sync container and either automatically
+handle it or at least leave the container running so the user can use `docker-compose exec`.
+Pull requests are welcome. 😊
+
 ## Testing
 
 There are no automated tests. But the files in `demo` can be used to run a manual test.
