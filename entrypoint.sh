@@ -43,7 +43,11 @@ cd $UNISON_DIR
 #  -ignore 'Path .git'                -> ignore
 # Run unison syncing UNISON_HOST_DIR and UNISON_DIR
 UNISON_CMD=(su-exec $UNISON_USER unison $UNISON_HOST_DIR $UNISON_DIR \
-  -prefer $UNISON_HOST_DIR -auto -batch -log=false -ignore 'Path .git')
+  -prefer $UNISON_HOST_DIR
+  -auto -batch -log=false \
+  -ignore 'Path .git'\
+  -ignore 'Path */tmp'\
+  -ignore 'Path tmp')
 
 # do an initial sync so we can let other containers know we are ready to go
 # on the initial sync we mirror the host directory with -force
