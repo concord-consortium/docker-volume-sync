@@ -86,14 +86,14 @@ wait-for-it requires bash, so bash is added, then the  wait-for-it script is dow
 ### Ignoring files
 
 The docker compose `command` can be used to pass additional options to Unison. A good usage for this
-is to ignore files.  For example if you want to ignore all log files you can use this:
+is to ignore files.  For example if you want to ignore all log files and dist files you can use this:
 
 ```yaml
 ...
 services:
   sync:
     image: concordconsortium/docker-volume-sync
-    command: ["-ignore", "Name *.log"]
+    command: ["-ignore", "Name *.log", "-ignore", "Path dist"]
     volumes:
       - sync-volume:/data
       - .:/host_data
@@ -102,8 +102,9 @@ services:
 More info about the syntax for ignoring files is here:
 https://www.cis.upenn.edu/~bcpierce/unison/download/releases/stable/unison-manual.html#ignore
 
-If you are wanting to ignoring a folder on your host system, you might be able to optimize performance further by adding an additional
-volume inside of host_data. This technique is described here:
+The options passed to Unison are appended to the default Unison options defined in `entrypoint.sh`. Any ignore options added using docker-compose `command` will augment not replace the defaults.
+
+If you want to ignore a folder that is being updated on on your host system, you might be able to optimize performance further by adding an additional volume inside of host_data. This technique is described here:
 https://stackoverflow.com/a/37898591
 We don't currently have a need for this kind of optimization, so it hasn't been tested.
 
